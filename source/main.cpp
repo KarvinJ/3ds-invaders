@@ -374,7 +374,10 @@ void renderTopScreen()
 	C2D_TargetClear(topScreen, BLACK);
 	C2D_SceneBegin(topScreen);
 
-	renderSprite(mysteryShip.sprite);
+	if (!mysteryShip.isDestroyed)
+    {
+        renderSprite(mysteryShip.sprite);
+    }
 
 	for (Alien &alien : aliens)
 	{
