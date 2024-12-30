@@ -128,7 +128,7 @@ std::vector<Alien> createAliens()
 	aliens.reserve(55);
 
 	int positionX;
-	int positionY = 25;
+	int positionY = 10;
 	int alienPoints = 8;
 
 	Sprite actualSprite;
@@ -282,7 +282,7 @@ void update()
 	{
 		lastTimeMysteryShipSpawn++;
 
-		if (lastTimeMysteryShipSpawn >= 120)
+		if (lastTimeMysteryShipSpawn >= 300)
 		{
 			lastTimeMysteryShipSpawn = 0;
 
@@ -301,25 +301,25 @@ void update()
 		mysteryShip.sprite.bounds.x += mysteryShip.velocityX;
 	}
 
-	// if (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_A))
-	// {
-	//     lastTimePlayerShoot += deltaTime;
+	if (keyHeld & KEY_A)
+	{
+	    lastTimePlayerShoot++;
 
-	//     if (lastTimePlayerShoot >= 0.35)
-	//     {
-	//         SDL_Rect laserBounds = {player.sprite.bounds.x + 10, player.sprite.bounds.y - player.sprite.bounds.h, 2, 8};
+	    if (lastTimePlayerShoot >= 15)
+	    {
+	        Rectangle laserBounds = {player.sprite.bounds.x + 10, player.sprite.bounds.y - player.sprite.bounds.h, 0, 2, 8, WHITE};
 
-	//         playerLasers.push_back({laserBounds, false});
+	        playerLasers.push_back({laserBounds, false});
 
-	//         lastTimePlayerShoot = 0;
+	        lastTimePlayerShoot = 0;
 
-	//         Mix_PlayChannel(-1, laserSound, 0);
-	//     }
-	// }
+	        // Mix_PlayChannel(-1, laserSound, 0);
+	    }
+	}
 
 	for (Laser &laser : playerLasers)
 	{
-		laser.bounds.y -= 2;
+		laser.bounds.y -= 3;
 
 		if (laser.bounds.y < 0)
 			laser.isDestroyed = true;
@@ -330,10 +330,6 @@ void update()
 			mysteryShip.isDestroyed = true;
 
 			player.score += mysteryShip.points;
-
-			// std::string scoreString = "score: " + std::to_string(player.score);
-
-			// updateTextureText(scoreTexture, scoreString.c_str(), fontSquare, renderer);
 
 			// Mix_PlayChannel(-1, explosionSound, 0);
 
@@ -348,10 +344,6 @@ void update()
 				laser.isDestroyed = true;
 
 				player.score += alien.points;
-
-				// std::string scoreString = "score: " + std::to_string(player.score);
-
-				// updateTextureText(scoreTexture, scoreString.c_str(), fontSquare, renderer);
 
 				// Mix_PlayChannel(-1, explosionSound, 0);
 
@@ -381,7 +373,7 @@ void update()
 
 	for (Laser &laser : alienLasers)
 	{
-		laser.bounds.y += 2;
+		laser.bounds.y += 3;
 
 		if (laser.bounds.y > SCREEN_HEIGHT)
 			laser.isDestroyed = true;
@@ -391,10 +383,6 @@ void update()
 			laser.isDestroyed = true;
 
 			player.lives--;
-
-			// std::string liveString = "lives: " + std::to_string(player.lives);
-
-			// updateTextureText(liveTexture, liveString.c_str(), fontSquare, renderer);
 
 			// Mix_PlayChannel(-1, explosionSound, 0);
 
@@ -446,13 +434,13 @@ void renderTopScreen()
 		}
 	}
 
-	// for (Structure &structure : structures)
-	// {
-	// 	if (!structure.isDestroyed)
-	// 	{
-	// 		C2D_DrawRectSolid(structure.bounds.x, structure.bounds.y, structure.bounds.z, structure.bounds.w, structure.bounds.h, structure.bounds.color);
-	// 	}
-	// }
+	for (Structure &structure : structures)
+	{
+		if (!structure.isDestroyed)
+		{
+			renderSprite(structure.sprite);
+		}
+	}
 
 	renderSprite(player.sprite);
 
@@ -468,23 +456,24 @@ void renderBottomScreen()
 	C2D_TextBufClear(scoreDynamicBuffer);
 	C2D_TextBufClear(livesDynamicBuffer);
 
+	// make print text functions
 	char buf[160];
 	C2D_Text dynamicText;
 	snprintf(buf, sizeof(buf), "score: %d", player.score);
 	C2D_TextParse(&dynamicText, scoreDynamicBuffer, buf);
 	C2D_TextOptimize(&dynamicText);
-	C2D_DrawText(&dynamicText, C2D_AlignCenter | C2D_WithColor, 250, 20, 0, textSize, textSize, WHITE);
+	C2D_DrawText(&dynamicText, C2D_AlignCenter | C2D_WithColor, 90, 20, 0, textSize, textSize, WHITE);
 
 	char buf2[160];
 	C2D_Text dynamicText2;
 	snprintf(buf2, sizeof(buf2), "lives: %d", player.lives);
 	C2D_TextParse(&dynamicText2, livesDynamicBuffer, buf2);
 	C2D_TextOptimize(&dynamicText2);
-	C2D_DrawText(&dynamicText2, C2D_AlignCenter | C2D_WithColor, 90, 20, 0, textSize, textSize, WHITE);
+	C2D_DrawText(&dynamicText2, C2D_AlignCenter | C2D_WithColor, 250, 20, 0, textSize, textSize, WHITE);
 
 	if (isGamePaused)
 	{
-		C2D_DrawText(&staticTexts[0], C2D_AtBaseline | C2D_WithColor, 110, 60, 0, textSize, textSize, WHITE);
+		C2D_DrawText(&staticTexts[0], C2D_AtBaseline | C2D_WithColor, 80, 100, 0, textSize, textSize, WHITE);
 	}
 
 	C3D_FrameEnd(0);
@@ -513,8 +502,19 @@ int main(int argc, char *argv[])
 	Sprite shipSprite = loadSprite("romfs:/gfx/mystery.t3x", TOP_SCREEN_WIDTH, 20, 22, 14);
 	mysteryShip = {shipSprite, 50, -3, false, false};
 
-	Sprite playerSprite = loadSprite("romfs:/gfx/spaceship.t3x", 100, SCREEN_HEIGHT - 20, 22, 14);
+	Sprite playerSprite = loadSprite("romfs:/gfx/spaceship.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT - 20, 22, 14);
 	player = {playerSprite, 2, 10, 0};
+
+	structureSprite = loadSprite("romfs:/gfx/structure.t3x", 50, SCREEN_HEIGHT - 50, 28, 17);
+
+	Rectangle structureBounds2 = {150, SCREEN_HEIGHT - 50, 0, 28, 17, WHITE};
+	Rectangle structureBounds3 = {250, SCREEN_HEIGHT - 50, 0, 28, 17, WHITE};
+	Rectangle structureBounds4 = {330, SCREEN_HEIGHT - 50, 0, 28, 17, WHITE};
+
+	structures.push_back({structureSprite, 5, false});
+	structures.push_back({{structureSprite.texture, structureBounds2}, 5, false});
+	structures.push_back({{structureSprite.texture, structureBounds3}, 5, false});
+	structures.push_back({{structureSprite.texture, structureBounds4}, 5, false});
 
 	touchPosition touch;
 
@@ -522,7 +522,6 @@ int main(int argc, char *argv[])
 	{
 		hidScanInput();
 
-		// Read the touch screen coordinates
 		hidTouchRead(&touch);
 
 		// touch.px
