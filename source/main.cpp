@@ -111,6 +111,7 @@ bool shouldChangeVelocity = false;
 
 C2D_SpriteSheet sheet;
 
+// try to load make work the filePath
 // Sprite loadSprite(const char *filePath, float positionX, float positionY, float width, float height)
 // {
 //     Rectangle bounds = {positionX, positionY, 0, width, height};
