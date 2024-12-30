@@ -111,15 +111,37 @@ bool shouldChangeVelocity = false;
 
 C2D_SpriteSheet sheet;
 
+// Sprite loadSprite(const char *filePath, float positionX, float positionY, float width, float height)
+// {
+//     Rectangle bounds = {positionX, positionY, 0, width, height};
+
+// 	std::string completePath = "romfs:/gfx/" + filePath;
+
+// 	C2D_SpriteSheet sheet = C2D_SpriteSheetLoad(completePath);
+// 	C2D_Image image = C2D_SpriteSheetGetImage(sheet, 0);
+
+//     Sprite sprite = {image, bounds}; 
+
+//     return sprite;
+// }
+
 std::vector<Alien> createAliens()
 {
+	C2D_SpriteSheet sheet = C2D_SpriteSheetLoad("romfs:/gfx/alien_1.t3x");
 	C2D_Image sprite = C2D_SpriteSheetGetImage(sheet, 0);
+
+	C2D_SpriteSheet sheet2 = C2D_SpriteSheetLoad("romfs:/gfx/alien_2.t3x");
+	C2D_Image sprite2 = C2D_SpriteSheetGetImage(sheet2, 0);
+
+	C2D_SpriteSheet sheet3 = C2D_SpriteSheetLoad("romfs:/gfx/alien_3.t3x");
+	C2D_Image sprite3 = C2D_SpriteSheetGetImage(sheet3, 0);
 
 	Rectangle initialBounds = {0, 0, 0, 16, 16, WHITE};
 
+	// alienSprite1 = loadSprite("alien_1.t3x", 0, 0, 16, 16);
 	alienSprite1 = {sprite, initialBounds};
-	alienSprite2 = {sprite, initialBounds};
-	alienSprite3 = {sprite, initialBounds};
+	alienSprite2 = {sprite2, initialBounds};
+	alienSprite3 = {sprite3, initialBounds};
 
 	std::vector<Alien> aliens;
 
@@ -134,7 +156,7 @@ std::vector<Alien> createAliens()
 
 	for (int row = 0; row < 5; row++)
 	{
-		positionX = 75;
+		positionX = 40;
 
 		switch (row)
 		{
@@ -156,7 +178,7 @@ std::vector<Alien> createAliens()
 			actualSprite.textureBounds.x = positionX;
 			actualSprite.textureBounds.y = positionY;
 
-			Alien actualAlien = {(float)positionX, actualSprite, alienPoints, 50, false};
+			Alien actualAlien = {(float)positionX, actualSprite, alienPoints, 1, false};
 
 			aliens.push_back(actualAlien);
 			positionX += 30;
@@ -173,7 +195,7 @@ void aliensMovement(float deltaTime)
 {
 	for (Alien &alien : aliens)
 	{
-		alien.x += alien.velocity * deltaTime;
+		alien.x += alien.velocity;
 		alien.sprite.textureBounds.x = alien.x;
 
 		float alienPosition = alien.sprite.textureBounds.x + alien.sprite.textureBounds.w;
@@ -405,9 +427,14 @@ void update()
 		checkCollisionBetweenStructureAndLaser(laser);
 	}
 
-	aliensMovement(1);
+	aliensMovement(0);
 
 	removeDestroyedElements();
+}
+
+void renderSprite(Sprite &sprite)
+{
+	C2D_DrawImageAt(sprite.texture, sprite.textureBounds.x, sprite.textureBounds.y, 0, NULL, 1, 1);
 }
 
 void renderTopScreen()
@@ -416,12 +443,15 @@ void renderTopScreen()
 	C2D_TargetClear(topScreen, BLACK);
 	C2D_SceneBegin(topScreen);
 
-	C2D_DrawImageAt(player.sprite.texture, player.sprite.textureBounds.x, player.sprite.textureBounds.y, 0, NULL, 1, 1);
-
-	if (isGamePaused)
+	for (Alien &alien : aliens)
 	{
-		C2D_DrawText(&staticTexts[0], C2D_AtBaseline | C2D_WithColor, 110, 60, 0, textSize, textSize, WHITE);
+		if (!alien.isDestroyed)
+		{
+			renderSprite(alien.sprite);
+		}
 	}
+
+	renderSprite(player.sprite);
 
 	C3D_FrameEnd(0);
 }
@@ -443,6 +473,11 @@ void renderBottomScreen()
 	C2D_TextParse(&dynamicText, textDynamicBuffer, buf);
 	C2D_TextOptimize(&dynamicText);
 	C2D_DrawText(&dynamicText, C2D_AlignCenter | C2D_WithColor, 150, 175, 0, textSize, textSize, WHITE);
+
+	if (isGamePaused)
+	{
+		C2D_DrawText(&staticTexts[0], C2D_AtBaseline | C2D_WithColor, 110, 60, 0, textSize, textSize, WHITE);
+	}
 
 	C3D_FrameEnd(0);
 }
@@ -471,15 +506,15 @@ int main(int argc, char *argv[])
 	// Optimize the static text strings
 	C2D_TextOptimize(&staticTexts[0]);
 
-	sheet = C2D_SpriteSheetLoad("romfs:/gfx/alien_1.t3x");
+	aliens = createAliens();
 
-	// aliens = createAliens();
+	C2D_SpriteSheet playerSheet = C2D_SpriteSheetLoad("romfs:/gfx/spaceship.t3x");
 
-	C2D_Image playerSprite = C2D_SpriteSheetGetImage(sheet, 0);
+	C2D_Image playerSprite = C2D_SpriteSheetGetImage(playerSheet, 0);
 
-	Rectangle initialBounds = {100, 200, 0, 20, 18, WHITE};
+	Rectangle playerBounds = {100, SCREEN_HEIGHT - 20, 0, 22, 14, WHITE};
 
-	Sprite sprite = {playerSprite, initialBounds};
+	Sprite sprite = {playerSprite, playerBounds};
 	player = {sprite, 2, 10, 0};
 
 	touchPosition touch;
