@@ -1,4 +1,4 @@
-#include <citro2d.h>
+#include "starter.h"
 #include <iostream>
 #include <vector>
 
@@ -24,22 +24,6 @@ const u32 BLACK = C2D_Color32(0x00, 0x00, 0x00, 0x00);
 const u32 GREEN = C2D_Color32(0x00, 0xFF, 0x00, 0xFF);
 const u32 RED = C2D_Color32(0xFF, 0x00, 0x00, 0xFF);
 const u32 BLUE = C2D_Color32(0x00, 0x00, 0xFF, 0xFF);
-
-typedef struct
-{
-	float x;
-	float y;
-	float z;
-	float w;
-	float h;
-	unsigned int color;
-} Rectangle;
-
-typedef struct
-{
-	C2D_Image texture;
-	Rectangle bounds;
-} Sprite;
 
 Sprite shipSprite;
 Sprite playerSprite;
@@ -103,18 +87,6 @@ typedef struct
 std::vector<Alien> aliens;
 
 bool shouldChangeVelocity = false;
-
-Sprite loadSprite(const char *filePath, float positionX, float positionY, float width, float height)
-{
-	Rectangle bounds = {positionX, positionY, 0, width, height};
-
-	C2D_SpriteSheet sheet = C2D_SpriteSheetLoad(filePath);
-	C2D_Image image = C2D_SpriteSheetGetImage(sheet, 0);
-
-	Sprite sprite = {image, bounds};
-
-	return sprite;
-}
 
 std::vector<Alien> createAliens()
 {
@@ -195,12 +167,6 @@ void aliensMovement()
 
 		shouldChangeVelocity = false;
 	}
-}
-
-bool hasCollision(Rectangle &bounds, Rectangle &ball)
-{
-	return bounds.x < ball.x + ball.w && bounds.x + bounds.w > ball.x &&
-		   bounds.y < ball.y + ball.h && bounds.y + bounds.h > ball.y;
 }
 
 void checkCollisionBetweenStructureAndLaser(Laser &laser)

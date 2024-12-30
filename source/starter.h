@@ -6,13 +6,20 @@ typedef struct
 {
 	float x;
 	float y;
+	float z;
 	float w;
 	float h;
 	unsigned int color;
 } Rectangle;
 
+typedef struct
+{
+	C2D_Image texture;
+	Rectangle bounds;
+} Sprite;
+
 void drawRectangle(Rectangle &rectangle);
 
-bool hasCollision1(Rectangle &bounds, Rectangle &ball);
+bool hasCollision(Rectangle &rectangle, Rectangle &rectangle2);
 
-void initSubSprites();
+Sprite loadSprite(const char *filePath, float positionX, float positionY, float width, float height);
