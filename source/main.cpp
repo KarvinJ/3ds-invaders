@@ -2,7 +2,6 @@
 #include <iostream>
 #include <vector>
 
-// the 3ds has different screen width, but the same screen height.
 const int TOP_SCREEN_WIDTH = 400;
 const int BOTTOM_SCREEN_WIDTH = 320;
 const int SCREEN_HEIGHT = 240;
@@ -12,16 +11,14 @@ C3D_RenderTarget *bottomScreen = nullptr;
 
 bool isGamePaused;
 
-int collisionCounter;
-
-C2D_TextBuf textDynamicBuffer;
+C2D_TextBuf scoreDynamicBuffer;
+C2D_TextBuf livesDynamicBuffer;
 
 C2D_TextBuf textStaticBuffer;
 C2D_Text staticTexts[1];
 
 float textSize = 1.0f;
 
-// Create colors
 const u32 WHITE = C2D_Color32(0xFF, 0xFF, 0xFF, 0xFF);
 const u32 BLACK = C2D_Color32(0x00, 0x00, 0x00, 0x00);
 const u32 GREEN = C2D_Color32(0x00, 0xFF, 0x00, 0xFF);
@@ -41,7 +38,7 @@ typedef struct
 typedef struct
 {
 	C2D_Image texture;
-	Rectangle textureBounds;
+	Rectangle bounds;
 } Sprite;
 
 Sprite shipSprite;
@@ -75,7 +72,6 @@ Player player;
 
 typedef struct
 {
-	float x;
 	Sprite sprite;
 	int points;
 	int velocityX;
@@ -98,7 +94,6 @@ std::vector<Structure> structures;
 
 typedef struct
 {
-	float x;
 	Sprite sprite;
 	int points;
 	int velocity;
@@ -109,40 +104,23 @@ std::vector<Alien> aliens;
 
 bool shouldChangeVelocity = false;
 
-C2D_SpriteSheet sheet;
+Sprite loadSprite(const char *filePath, float positionX, float positionY, float width, float height)
+{
+	Rectangle bounds = {positionX, positionY, 0, width, height};
 
-// try to load make work the filePath
-// Sprite loadSprite(const char *filePath, float positionX, float positionY, float width, float height)
-// {
-//     Rectangle bounds = {positionX, positionY, 0, width, height};
+	C2D_SpriteSheet sheet = C2D_SpriteSheetLoad(filePath);
+	C2D_Image image = C2D_SpriteSheetGetImage(sheet, 0);
 
-// 	std::string completePath = "romfs:/gfx/" + filePath;
+	Sprite sprite = {image, bounds};
 
-// 	C2D_SpriteSheet sheet = C2D_SpriteSheetLoad(completePath);
-// 	C2D_Image image = C2D_SpriteSheetGetImage(sheet, 0);
-
-//     Sprite sprite = {image, bounds}; 
-
-//     return sprite;
-// }
+	return sprite;
+}
 
 std::vector<Alien> createAliens()
 {
-	C2D_SpriteSheet sheet = C2D_SpriteSheetLoad("romfs:/gfx/alien_1.t3x");
-	C2D_Image sprite = C2D_SpriteSheetGetImage(sheet, 0);
-
-	C2D_SpriteSheet sheet2 = C2D_SpriteSheetLoad("romfs:/gfx/alien_2.t3x");
-	C2D_Image sprite2 = C2D_SpriteSheetGetImage(sheet2, 0);
-
-	C2D_SpriteSheet sheet3 = C2D_SpriteSheetLoad("romfs:/gfx/alien_3.t3x");
-	C2D_Image sprite3 = C2D_SpriteSheetGetImage(sheet3, 0);
-
-	Rectangle initialBounds = {0, 0, 0, 16, 16, WHITE};
-
-	// alienSprite1 = loadSprite("alien_1.t3x", 0, 0, 16, 16);
-	alienSprite1 = {sprite, initialBounds};
-	alienSprite2 = {sprite2, initialBounds};
-	alienSprite3 = {sprite3, initialBounds};
+	alienSprite1 = loadSprite("romfs:/gfx/alien_1.t3x", 0, 0, 16, 16);
+	alienSprite2 = loadSprite("romfs:/gfx/alien_2.t3x", 0, 0, 16, 16);
+	alienSprite3 = loadSprite("romfs:/gfx/alien_3.t3x", 0, 0, 16, 16);
 
 	std::vector<Alien> aliens;
 
@@ -176,10 +154,10 @@ std::vector<Alien> createAliens()
 
 		for (int columns = 0; columns < 11; columns++)
 		{
-			actualSprite.textureBounds.x = positionX;
-			actualSprite.textureBounds.y = positionY;
+			actualSprite.bounds.x = positionX;
+			actualSprite.bounds.y = positionY;
 
-			Alien actualAlien = {(float)positionX, actualSprite, alienPoints, 1, false};
+			Alien actualAlien = {actualSprite, alienPoints, 1, false};
 
 			aliens.push_back(actualAlien);
 			positionX += 30;
@@ -192,16 +170,15 @@ std::vector<Alien> createAliens()
 	return aliens;
 }
 
-void aliensMovement(float deltaTime)
+void aliensMovement()
 {
 	for (Alien &alien : aliens)
 	{
-		alien.x += alien.velocity;
-		alien.sprite.textureBounds.x = alien.x;
+		alien.sprite.bounds.x += alien.velocity;
 
-		float alienPosition = alien.sprite.textureBounds.x + alien.sprite.textureBounds.w;
+		float alienPosition = alien.sprite.bounds.x + alien.sprite.bounds.w;
 
-		if ((!shouldChangeVelocity && alienPosition > TOP_SCREEN_WIDTH) || alienPosition < alien.sprite.textureBounds.w)
+		if ((!shouldChangeVelocity && alienPosition > TOP_SCREEN_WIDTH) || alienPosition < alien.sprite.bounds.w)
 		{
 			shouldChangeVelocity = true;
 			break;
@@ -213,7 +190,7 @@ void aliensMovement(float deltaTime)
 		for (Alien &alien : aliens)
 		{
 			alien.velocity *= -1;
-			alien.sprite.textureBounds.y += 5;
+			alien.sprite.bounds.y += 5;
 		}
 
 		shouldChangeVelocity = false;
@@ -230,7 +207,7 @@ void checkCollisionBetweenStructureAndLaser(Laser &laser)
 {
 	for (Structure &structure : structures)
 	{
-		if (!structure.isDestroyed && hasCollision(structure.sprite.textureBounds, laser.bounds))
+		if (!structure.isDestroyed && hasCollision(structure.sprite.bounds, laser.bounds))
 		{
 			laser.isDestroyed = true;
 
@@ -291,21 +268,21 @@ void update()
 {
 	int keyHeld = hidKeysHeld();
 
-	if (keyHeld & KEY_LEFT && player.sprite.textureBounds.x > 0)
+	if (keyHeld & KEY_LEFT && player.sprite.bounds.x > 0)
 	{
-		player.sprite.textureBounds.x -= player.speed /* deltaTime*/;
+		player.sprite.bounds.x -= player.speed;
 	}
 
-	else if (keyHeld & KEY_RIGHT && player.sprite.textureBounds.x < TOP_SCREEN_WIDTH - player.sprite.textureBounds.w)
+	else if (keyHeld & KEY_RIGHT && player.sprite.bounds.x < TOP_SCREEN_WIDTH - player.sprite.bounds.w)
 	{
-		player.sprite.textureBounds.x += player.speed /* deltaTime*/;
+		player.sprite.bounds.x += player.speed;
 	}
 
 	if (!mysteryShip.shouldMove)
 	{
-		// lastTimeMysteryShipSpawn += deltaTime;
+		lastTimeMysteryShipSpawn++;
 
-		if (lastTimeMysteryShipSpawn >= 10)
+		if (lastTimeMysteryShipSpawn >= 120)
 		{
 			lastTimeMysteryShipSpawn = 0;
 
@@ -315,14 +292,13 @@ void update()
 
 	if (mysteryShip.shouldMove)
 	{
-		if (mysteryShip.sprite.textureBounds.x > TOP_SCREEN_WIDTH + mysteryShip.sprite.textureBounds.w || mysteryShip.sprite.textureBounds.x < -80)
+		if (mysteryShip.sprite.bounds.x > TOP_SCREEN_WIDTH + mysteryShip.sprite.bounds.w || mysteryShip.sprite.bounds.x < -80)
 		{
 			mysteryShip.velocityX *= -1;
 			mysteryShip.shouldMove = false;
 		}
 
-		// mysteryShip.x += mysteryShip.velocityX * deltaTime;
-		mysteryShip.sprite.textureBounds.x = mysteryShip.x;
+		mysteryShip.sprite.bounds.x += mysteryShip.velocityX;
 	}
 
 	// if (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_A))
@@ -331,7 +307,7 @@ void update()
 
 	//     if (lastTimePlayerShoot >= 0.35)
 	//     {
-	//         SDL_Rect laserBounds = {player.sprite.textureBounds.x + 10, player.sprite.textureBounds.y - player.sprite.textureBounds.h, 2, 8};
+	//         SDL_Rect laserBounds = {player.sprite.bounds.x + 10, player.sprite.bounds.y - player.sprite.bounds.h, 2, 8};
 
 	//         playerLasers.push_back({laserBounds, false});
 
@@ -343,12 +319,12 @@ void update()
 
 	for (Laser &laser : playerLasers)
 	{
-		// laser.bounds.y -= 200 * deltaTime;
+		laser.bounds.y -= 2;
 
 		if (laser.bounds.y < 0)
 			laser.isDestroyed = true;
 
-		if (!mysteryShip.isDestroyed && hasCollision(mysteryShip.sprite.textureBounds, laser.bounds))
+		if (!mysteryShip.isDestroyed && hasCollision(mysteryShip.sprite.bounds, laser.bounds))
 		{
 			laser.isDestroyed = true;
 			mysteryShip.isDestroyed = true;
@@ -366,7 +342,7 @@ void update()
 
 		for (Alien &alien : aliens)
 		{
-			if (!alien.isDestroyed && hasCollision(alien.sprite.textureBounds, laser.bounds))
+			if (!alien.isDestroyed && hasCollision(alien.sprite.bounds, laser.bounds))
 			{
 				alien.isDestroyed = true;
 				laser.isDestroyed = true;
@@ -386,15 +362,15 @@ void update()
 		checkCollisionBetweenStructureAndLaser(laser);
 	}
 
-	// lastTimeAliensShoot += deltaTime;
+	lastTimeAliensShoot++;
 
-	if (aliens.size() > 0 && lastTimeAliensShoot >= 0.6)
+	if (aliens.size() > 0 && lastTimeAliensShoot >= 30)
 	{
 		int randomAlienIndex = rand() % aliens.size();
 
 		Alien alienShooter = aliens[randomAlienIndex];
 
-		Rectangle laserBounds = {alienShooter.sprite.textureBounds.x + 10, alienShooter.sprite.textureBounds.y + alienShooter.sprite.textureBounds.h, 0, 2, 8, WHITE};
+		Rectangle laserBounds = {alienShooter.sprite.bounds.x + 10, alienShooter.sprite.bounds.y + alienShooter.sprite.bounds.h, 0, 2, 8, WHITE};
 
 		alienLasers.push_back({laserBounds, false});
 
@@ -405,12 +381,12 @@ void update()
 
 	for (Laser &laser : alienLasers)
 	{
-		// laser.bounds.y += 200 * deltaTime;
+		laser.bounds.y += 2;
 
 		if (laser.bounds.y > SCREEN_HEIGHT)
 			laser.isDestroyed = true;
 
-		if (player.lives > 0 && hasCollision(player.sprite.textureBounds, laser.bounds))
+		if (player.lives > 0 && hasCollision(player.sprite.bounds, laser.bounds))
 		{
 			laser.isDestroyed = true;
 
@@ -428,14 +404,14 @@ void update()
 		checkCollisionBetweenStructureAndLaser(laser);
 	}
 
-	aliensMovement(0);
+	aliensMovement();
 
 	removeDestroyedElements();
 }
 
 void renderSprite(Sprite &sprite)
 {
-	C2D_DrawImageAt(sprite.texture, sprite.textureBounds.x, sprite.textureBounds.y, 0, NULL, 1, 1);
+	C2D_DrawImageAt(sprite.texture, sprite.bounds.x, sprite.bounds.y, 0, NULL, 1, 1);
 }
 
 void renderTopScreen()
@@ -444,6 +420,8 @@ void renderTopScreen()
 	C2D_TargetClear(topScreen, BLACK);
 	C2D_SceneBegin(topScreen);
 
+	renderSprite(mysteryShip.sprite);
+
 	for (Alien &alien : aliens)
 	{
 		if (!alien.isDestroyed)
@@ -451,6 +429,30 @@ void renderTopScreen()
 			renderSprite(alien.sprite);
 		}
 	}
+
+	for (Laser &laser : alienLasers)
+	{
+		if (!laser.isDestroyed)
+		{
+			C2D_DrawRectSolid(laser.bounds.x, laser.bounds.y, laser.bounds.z, laser.bounds.w, laser.bounds.h, laser.bounds.color);
+		}
+	}
+
+	for (Laser &laser : playerLasers)
+	{
+		if (!laser.isDestroyed)
+		{
+			C2D_DrawRectSolid(laser.bounds.x, laser.bounds.y, laser.bounds.z, laser.bounds.w, laser.bounds.h, laser.bounds.color);
+		}
+	}
+
+	// for (Structure &structure : structures)
+	// {
+	// 	if (!structure.isDestroyed)
+	// 	{
+	// 		C2D_DrawRectSolid(structure.bounds.x, structure.bounds.y, structure.bounds.z, structure.bounds.w, structure.bounds.h, structure.bounds.color);
+	// 	}
+	// }
 
 	renderSprite(player.sprite);
 
@@ -463,17 +465,22 @@ void renderBottomScreen()
 	C2D_TargetClear(bottomScreen, BLACK);
 	C2D_SceneBegin(bottomScreen);
 
-	// C2D_DrawRectSolid(bottomBounds.x, bottomBounds.y, bottomBounds.z, bottomBounds.w, bottomBounds.h, bottomBounds.color);
+	C2D_TextBufClear(scoreDynamicBuffer);
+	C2D_TextBufClear(livesDynamicBuffer);
 
-	C2D_TextBufClear(textDynamicBuffer);
-
-	// Generate and draw dynamic text
 	char buf[160];
 	C2D_Text dynamicText;
-	snprintf(buf, sizeof(buf), "Total collisions: %d", collisionCounter);
-	C2D_TextParse(&dynamicText, textDynamicBuffer, buf);
+	snprintf(buf, sizeof(buf), "score: %d", player.score);
+	C2D_TextParse(&dynamicText, scoreDynamicBuffer, buf);
 	C2D_TextOptimize(&dynamicText);
-	C2D_DrawText(&dynamicText, C2D_AlignCenter | C2D_WithColor, 150, 175, 0, textSize, textSize, WHITE);
+	C2D_DrawText(&dynamicText, C2D_AlignCenter | C2D_WithColor, 250, 20, 0, textSize, textSize, WHITE);
+
+	char buf2[160];
+	C2D_Text dynamicText2;
+	snprintf(buf2, sizeof(buf2), "lives: %d", player.lives);
+	C2D_TextParse(&dynamicText2, livesDynamicBuffer, buf2);
+	C2D_TextOptimize(&dynamicText2);
+	C2D_DrawText(&dynamicText2, C2D_AlignCenter | C2D_WithColor, 90, 20, 0, textSize, textSize, WHITE);
 
 	if (isGamePaused)
 	{
@@ -485,42 +492,32 @@ void renderBottomScreen()
 
 int main(int argc, char *argv[])
 {
-	// Init libs
 	romfsInit();
 	gfxInitDefault();
 	C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
 	C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
 	C2D_Prepare();
 
-	// Create top and bottom screens
 	topScreen = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
 	bottomScreen = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
 
-	// Create two text buffers: one for static text, and another one for
-	// dynamic text - the latter will be cleared at each frame.
-	textStaticBuffer = C2D_TextBufNew(1024); // support up to 4096 glyphs in the buffer
-	textDynamicBuffer = C2D_TextBufNew(4096);
-
-	// Parse the static text strings
+	textStaticBuffer = C2D_TextBufNew(1024);
 	C2D_TextParse(&staticTexts[0], textStaticBuffer, "Game Paused");
-
-	// Optimize the static text strings
 	C2D_TextOptimize(&staticTexts[0]);
+
+	scoreDynamicBuffer = C2D_TextBufNew(4096);
+	livesDynamicBuffer = C2D_TextBufNew(4096);
 
 	aliens = createAliens();
 
-	C2D_SpriteSheet playerSheet = C2D_SpriteSheetLoad("romfs:/gfx/spaceship.t3x");
+	Sprite shipSprite = loadSprite("romfs:/gfx/mystery.t3x", TOP_SCREEN_WIDTH, 20, 22, 14);
+	mysteryShip = {shipSprite, 50, -3, false, false};
 
-	C2D_Image playerSprite = C2D_SpriteSheetGetImage(playerSheet, 0);
-
-	Rectangle playerBounds = {100, SCREEN_HEIGHT - 20, 0, 22, 14, WHITE};
-
-	Sprite sprite = {playerSprite, playerBounds};
-	player = {sprite, 2, 10, 0};
+	Sprite playerSprite = loadSprite("romfs:/gfx/spaceship.t3x", 100, SCREEN_HEIGHT - 20, 22, 14);
+	player = {playerSprite, 2, 10, 0};
 
 	touchPosition touch;
 
-	// Main loop
 	while (aptMainLoop())
 	{
 		hidScanInput();
@@ -548,11 +545,10 @@ int main(int argc, char *argv[])
 		renderBottomScreen();
 	}
 
-	// Delete the text buffers
-	C2D_TextBufDelete(textDynamicBuffer);
+	C2D_TextBufDelete(scoreDynamicBuffer);
+	C2D_TextBufDelete(livesDynamicBuffer);
 	C2D_TextBufDelete(textStaticBuffer);
 
-	// Deinit libs
 	C2D_Fini();
 	C3D_Fini();
 	gfxExit();
