@@ -383,7 +383,7 @@ void renderTopScreen()
 	{
 		if (!laser.isDestroyed)
 		{
-			C2D_DrawRectSolid(laser.bounds.x, laser.bounds.y, laser.bounds.z, laser.bounds.w, laser.bounds.h, laser.bounds.color);
+			drawRectangle(laser.bounds);
 		}
 	}
 
@@ -391,7 +391,7 @@ void renderTopScreen()
 	{
 		if (!laser.isDestroyed)
 		{
-			C2D_DrawRectSolid(laser.bounds.x, laser.bounds.y, laser.bounds.z, laser.bounds.w, laser.bounds.h, laser.bounds.color);
+			drawRectangle(laser.bounds);
 		}
 	}
 
