@@ -360,11 +360,6 @@ void update()
 	removeDestroyedElements();
 }
 
-void renderSprite(Sprite &sprite)
-{
-	C2D_DrawImageAt(sprite.texture, sprite.bounds.x, sprite.bounds.y, 0, NULL, 1, 1);
-}
-
 void renderTopScreen()
 {
 	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);

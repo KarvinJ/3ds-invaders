@@ -23,3 +23,5 @@ void drawRectangle(Rectangle &rectangle);
 bool hasCollision(Rectangle &rectangle, Rectangle &rectangle2);
 
 Sprite loadSprite(const char *filePath, float positionX, float positionY, float width, float height);
+
+void renderSprite(Sprite &sprite);
