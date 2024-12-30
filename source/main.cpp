@@ -25,12 +25,9 @@ const u32 GREEN = C2D_Color32(0x00, 0xFF, 0x00, 0xFF);
 const u32 RED = C2D_Color32(0xFF, 0x00, 0x00, 0xFF);
 const u32 BLUE = C2D_Color32(0x00, 0x00, 0xFF, 0xFF);
 
-Sprite shipSprite;
-Sprite playerSprite;
 Sprite alienSprite1;
 Sprite alienSprite2;
 Sprite alienSprite3;
-Sprite structureSprite;
 
 typedef struct
 {
@@ -474,7 +471,7 @@ int main(int argc, char *argv[])
 	Sprite playerSprite = loadSprite("romfs:/gfx/spaceship.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT - 20, 22, 14);
 	player = {playerSprite, 2, 10, 0};
 
-	structureSprite = loadSprite("romfs:/gfx/structure.t3x", 50, SCREEN_HEIGHT - 50, 28, 17);
+	Sprite structureSprite = loadSprite("romfs:/gfx/structure.t3x", 50, SCREEN_HEIGHT - 50, 28, 17);
 
 	Rectangle structureBounds2 = {150, SCREEN_HEIGHT - 50, 0, 28, 17, WHITE};
 	Rectangle structureBounds3 = {250, SCREEN_HEIGHT - 50, 0, 28, 17, WHITE};
