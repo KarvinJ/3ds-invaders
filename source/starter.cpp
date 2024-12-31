@@ -18,7 +18,7 @@ Sprite loadSprite(const char *filePath, float positionX, float positionY, float 
 	C2D_SpriteSheet sheet = C2D_SpriteSheetLoad(filePath);
 	C2D_Image image = C2D_SpriteSheetGetImage(sheet, 0);
 
-	Sprite sprite = {image, bounds};
+	Sprite sprite = {image, bounds, sheet};
 
 	return sprite;
 }
@@ -26,4 +26,14 @@ Sprite loadSprite(const char *filePath, float positionX, float positionY, float 
 void renderSprite(Sprite &sprite)
 {
 	C2D_DrawImageAt(sprite.texture, sprite.bounds.x, sprite.bounds.y, 0, NULL, 1, 1);
+}
+
+void drawDynamicText(const char *textFormat, int value, C2D_TextBuf dynamicBuffer, int positionX, int positionY, float textSize)
+{
+	char buf[160];
+	C2D_Text dynamicText;
+	snprintf(buf, sizeof(buf), textFormat, value);
+	C2D_TextParse(&dynamicText, dynamicBuffer, buf);
+	C2D_TextOptimize(&dynamicText);
+	C2D_DrawText(&dynamicText, C2D_AlignCenter | C2D_WithColor, positionX, positionY, 0, textSize, textSize, WHITE);
 }

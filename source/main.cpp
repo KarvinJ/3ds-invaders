@@ -2,10 +2,6 @@
 #include <iostream>
 #include <vector>
 
-const int TOP_SCREEN_WIDTH = 400;
-const int BOTTOM_SCREEN_WIDTH = 320;
-const int SCREEN_HEIGHT = 240;
-
 C3D_RenderTarget *topScreen = nullptr;
 C3D_RenderTarget *bottomScreen = nullptr;
 
@@ -14,20 +10,10 @@ bool isGamePaused;
 C2D_TextBuf scoreDynamicBuffer;
 C2D_TextBuf livesDynamicBuffer;
 
-C2D_TextBuf textStaticBuffer;
-C2D_Text staticTexts[1];
+C2D_TextBuf pauseStaticBuffer;
+C2D_Text pauseTexts[1];
 
 float textSize = 1.0f;
-
-const u32 WHITE = C2D_Color32(0xFF, 0xFF, 0xFF, 0xFF);
-const u32 BLACK = C2D_Color32(0x00, 0x00, 0x00, 0x00);
-const u32 GREEN = C2D_Color32(0x00, 0xFF, 0x00, 0xFF);
-const u32 RED = C2D_Color32(0xFF, 0x00, 0x00, 0xFF);
-const u32 BLUE = C2D_Color32(0x00, 0x00, 0xFF, 0xFF);
-
-Sprite alienSprite1;
-Sprite alienSprite2;
-Sprite alienSprite3;
 
 typedef struct
 {
@@ -83,7 +69,11 @@ typedef struct
 
 std::vector<Alien> aliens;
 
-bool shouldChangeVelocity = false;
+bool shouldChangeVelocity;
+
+Sprite alienSprite1;
+Sprite alienSprite2;
+Sprite alienSprite3;
 
 std::vector<Alien> createAliens()
 {
@@ -266,18 +256,18 @@ void update()
 
 	if (keyHeld & KEY_A)
 	{
-	    lastTimePlayerShoot++;
+		lastTimePlayerShoot++;
 
-	    if (lastTimePlayerShoot >= 15)
-	    {
-	        Rectangle laserBounds = {player.sprite.bounds.x + 10, player.sprite.bounds.y - player.sprite.bounds.h, 0, 2, 8, WHITE};
+		if (lastTimePlayerShoot >= 15)
+		{
+			Rectangle laserBounds = {player.sprite.bounds.x + 10, player.sprite.bounds.y - player.sprite.bounds.h, 0, 2, 8, YELLOW};
 
-	        playerLasers.push_back({laserBounds, false});
+			playerLasers.push_back({laserBounds, false});
 
-	        lastTimePlayerShoot = 0;
+			lastTimePlayerShoot = 0;
 
-	        // Mix_PlayChannel(-1, laserSound, 0);
-	    }
+			// Mix_PlayChannel(-1, laserSound, 0);
+		}
 	}
 
 	for (Laser &laser : playerLasers)
@@ -325,7 +315,7 @@ void update()
 
 		Alien alienShooter = aliens[randomAlienIndex];
 
-		Rectangle laserBounds = {alienShooter.sprite.bounds.x + 10, alienShooter.sprite.bounds.y + alienShooter.sprite.bounds.h, 0, 2, 8, WHITE};
+		Rectangle laserBounds = {alienShooter.sprite.bounds.x + 10, alienShooter.sprite.bounds.y + alienShooter.sprite.bounds.h, 0, 2, 8, YELLOW};
 
 		alienLasers.push_back({laserBounds, false});
 
@@ -363,13 +353,13 @@ void update()
 void renderTopScreen()
 {
 	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-	C2D_TargetClear(topScreen, BLACK);
+	C2D_TargetClear(topScreen, BROWN);
 	C2D_SceneBegin(topScreen);
 
 	if (!mysteryShip.isDestroyed)
-    {
-        renderSprite(mysteryShip.sprite);
-    }
+	{
+		renderSprite(mysteryShip.sprite);
+	}
 
 	for (Alien &alien : aliens)
 	{
@@ -417,24 +407,13 @@ void renderBottomScreen()
 	C2D_TextBufClear(scoreDynamicBuffer);
 	C2D_TextBufClear(livesDynamicBuffer);
 
-	// make print text functions
-	char buf[160];
-	C2D_Text dynamicText;
-	snprintf(buf, sizeof(buf), "score: %d", player.score);
-	C2D_TextParse(&dynamicText, scoreDynamicBuffer, buf);
-	C2D_TextOptimize(&dynamicText);
-	C2D_DrawText(&dynamicText, C2D_AlignCenter | C2D_WithColor, 90, 20, 0, textSize, textSize, WHITE);
+	drawDynamicText("score: %d", player.score, scoreDynamicBuffer, 90, 20, textSize);
 
-	char buf2[160];
-	C2D_Text dynamicText2;
-	snprintf(buf2, sizeof(buf2), "lives: %d", player.lives);
-	C2D_TextParse(&dynamicText2, livesDynamicBuffer, buf2);
-	C2D_TextOptimize(&dynamicText2);
-	C2D_DrawText(&dynamicText2, C2D_AlignCenter | C2D_WithColor, 250, 20, 0, textSize, textSize, WHITE);
+	drawDynamicText("lives: %d", player.lives, livesDynamicBuffer, 250, 20, textSize);
 
 	if (isGamePaused)
 	{
-		C2D_DrawText(&staticTexts[0], C2D_AtBaseline | C2D_WithColor, 80, 100, 0, textSize, textSize, WHITE);
+		C2D_DrawText(&pauseTexts[0], C2D_AtBaseline | C2D_WithColor, 80, 100, 0, textSize, textSize, WHITE);
 	}
 
 	C3D_FrameEnd(0);
@@ -451,9 +430,9 @@ int main(int argc, char *argv[])
 	topScreen = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
 	bottomScreen = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
 
-	textStaticBuffer = C2D_TextBufNew(1024);
-	C2D_TextParse(&staticTexts[0], textStaticBuffer, "Game Paused");
-	C2D_TextOptimize(&staticTexts[0]);
+	pauseStaticBuffer = C2D_TextBufNew(1024);
+	C2D_TextParse(&pauseTexts[0], pauseStaticBuffer, "Game Paused");
+	C2D_TextOptimize(&pauseTexts[0]);
 
 	scoreDynamicBuffer = C2D_TextBufNew(4096);
 	livesDynamicBuffer = C2D_TextBufNew(4096);
@@ -477,16 +456,9 @@ int main(int argc, char *argv[])
 	structures.push_back({{structureSprite.texture, structureBounds3}, 5, false});
 	structures.push_back({{structureSprite.texture, structureBounds4}, 5, false});
 
-	touchPosition touch;
-
 	while (aptMainLoop())
 	{
 		hidScanInput();
-
-		hidTouchRead(&touch);
-
-		// touch.px
-		// touch.py
 
 		int keyDown = hidKeysDown();
 
@@ -505,10 +477,20 @@ int main(int argc, char *argv[])
 		renderBottomScreen();
 	}
 
+	// removing text.
 	C2D_TextBufDelete(scoreDynamicBuffer);
 	C2D_TextBufDelete(livesDynamicBuffer);
-	C2D_TextBufDelete(textStaticBuffer);
+	C2D_TextBufDelete(pauseStaticBuffer);
 
+	// removing loaded sheets.
+	C2D_SpriteSheetFree(mysteryShip.sprite.sheet);
+	C2D_SpriteSheetFree(alienSprite1.sheet);
+	C2D_SpriteSheetFree(alienSprite2.sheet);
+	C2D_SpriteSheetFree(alienSprite3.sheet);
+	C2D_SpriteSheetFree(structureSprite.sheet);
+	C2D_SpriteSheetFree(player.sprite.sheet);
+
+	// closing library.
 	C2D_Fini();
 	C3D_Fini();
 	gfxExit();
