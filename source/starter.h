@@ -2,10 +2,6 @@
 
 #include <citro2d.h>
 
-const int TOP_SCREEN_WIDTH = 400;
-const int BOTTOM_SCREEN_WIDTH = 320;
-const int SCREEN_HEIGHT = 240;
-
 const u32 WHITE = C2D_Color32(0xFF, 0xFF, 0xFF, 0xFF);
 const u32 BLACK = C2D_Color32(0x00, 0x00, 0x00, 0x00);
 const u32 YELLOW = C2D_Color32(0xF3, 0xD8, 0x3F, 0xFF);

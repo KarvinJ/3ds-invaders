@@ -33,7 +33,10 @@ void drawDynamicText(const char *textFormat, int value, C2D_TextBuf &dynamicBuff
 	char buf[160];
 	C2D_Text dynamicText;
 	snprintf(buf, sizeof(buf), textFormat, value);
+
 	C2D_TextParse(&dynamicText, dynamicBuffer, buf);
 	C2D_TextOptimize(&dynamicText);
 	C2D_DrawText(&dynamicText, C2D_AlignCenter | C2D_WithColor, positionX, positionY, 0, textSize, textSize, WHITE);
+
+	C2D_TextBufClear(dynamicBuffer);
 }

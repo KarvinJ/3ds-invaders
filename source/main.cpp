@@ -2,6 +2,10 @@
 #include <iostream>
 #include <vector>
 
+const int TOP_SCREEN_WIDTH = 400;
+const int BOTTOM_SCREEN_WIDTH = 320;
+const int SCREEN_HEIGHT = 240;
+
 C3D_RenderTarget *topScreen = nullptr;
 C3D_RenderTarget *bottomScreen = nullptr;
 
@@ -404,11 +408,7 @@ void renderBottomScreen()
 	C2D_TargetClear(bottomScreen, BLACK);
 	C2D_SceneBegin(bottomScreen);
 
-	C2D_TextBufClear(scoreDynamicBuffer);
-	C2D_TextBufClear(livesDynamicBuffer);
-
 	drawDynamicText("score: %d", player.score, scoreDynamicBuffer, 90, 20, textSize);
-
 	drawDynamicText("lives: %d", player.lives, livesDynamicBuffer, 250, 20, textSize);
 
 	if (isGamePaused)
