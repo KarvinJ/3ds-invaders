@@ -36,4 +36,4 @@ Sprite loadSprite(const char *filePath, float positionX, float positionY, float 
 
 void renderSprite(Sprite &sprite);
 
-void drawDynamicText(const char *textFormat, int value, C2D_TextBuf dynamicBuffer, int positionX, int positionY, float textSize);
+void drawDynamicText(const char *textFormat, int value, C2D_TextBuf &dynamicBuffer, int positionX, int positionY, float textSize);
