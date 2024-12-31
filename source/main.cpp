@@ -81,9 +81,9 @@ Sprite alienSprite3;
 
 std::vector<Alien> createAliens()
 {
-	alienSprite1 = loadSprite("romfs:/gfx/alien_1.t3x", 0, 0, 16, 16);
-	alienSprite2 = loadSprite("romfs:/gfx/alien_2.t3x", 0, 0, 16, 16);
-	alienSprite3 = loadSprite("romfs:/gfx/alien_3.t3x", 0, 0, 16, 16);
+	alienSprite1 = loadSprite("alien_1.t3x", 0, 0, 16, 16);
+	alienSprite2 = loadSprite("alien_2.t3x", 0, 0, 16, 16);
+	alienSprite3 = loadSprite("alien_3.t3x", 0, 0, 16, 16);
 
 	std::vector<Alien> aliens;
 
@@ -439,13 +439,13 @@ int main(int argc, char *argv[])
 
 	aliens = createAliens();
 
-	Sprite shipSprite = loadSprite("romfs:/gfx/mystery.t3x", TOP_SCREEN_WIDTH, 20, 22, 14);
+	Sprite shipSprite = loadSprite("mystery.t3x", TOP_SCREEN_WIDTH, 20, 22, 14);
 	mysteryShip = {shipSprite, 50, -3, false, false};
 
-	Sprite playerSprite = loadSprite("romfs:/gfx/spaceship.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT - 20, 22, 14);
+	Sprite playerSprite = loadSprite("spaceship.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT - 20, 22, 14);
 	player = {playerSprite, 2, 10, 0};
 
-	Sprite structureSprite = loadSprite("romfs:/gfx/structure.t3x", 50, SCREEN_HEIGHT - 50, 28, 17);
+	Sprite structureSprite = loadSprite("structure.t3x", 50, SCREEN_HEIGHT - 50, 28, 17);
 
 	Rectangle structureBounds2 = {150, SCREEN_HEIGHT - 50, 0, 28, 17, WHITE};
 	Rectangle structureBounds3 = {250, SCREEN_HEIGHT - 50, 0, 28, 17, WHITE};
